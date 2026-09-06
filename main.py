@@ -1,7 +1,10 @@
-#ثنا اکبرزاده پروژه یک ( پیش بینی نمره امتحان بر اساس عادات روزمره)
+#ثنا اکبرزاده (پروژه یک_ پیش بینی نمره دانش آموزان بر اساس عادات روزمره)
+
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import streamlit as st
 
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
@@ -11,38 +14,64 @@ import joblib
 
 
 
+# عنوان پروژه
+
+
+st.title("پروژه شماره ۱ - پیش‌بینی نمره امتحان بر اساس عادات روزمره")
+
+
+
 # مرحله ۱: بارگذاری و بررسی داده
 
 
+st.header("مرحله ۱: بارگذاری و بررسی داده")
+
 df = pd.read_csv("enhanced_student_habits_performance_dataset.csv")
 
-print("اطلاعات دیتاست:")
-print(df.info())
+st.subheader("اطلاعات دیتاست")
 
-print("\nآمار توصیفی:")
-print(df.describe())
+st.subheader("اطلاعات دیتاست")
 
-print("\nتعداد ردیف‌ها:", df.shape[0])
-print("تعداد ستون‌ها:", df.shape[1])
+info_df = pd.DataFrame({
+    "نوع داده": df.dtypes.astype(str),
+    "تعداد مقادیر غیرخالی": df.notna().sum(),
+    "تعداد مقادیر خالی": df.isna().sum()
+})
+
+st.dataframe(info_df, use_container_width=True)
+
+st.subheader("آمار توصیفی")
+st.dataframe(df.describe())
+
+st.write("تعداد ردیف‌ها:", df.shape[0])
+st.write("تعداد ستون‌ها:", df.shape[1])
 
 
 
-# مرحله ۲: پاک‌سازی داده
+# مرحله ۲: بررسی داده‌های گمشده و تکراری
 
-print("\nداده‌های گمشده در هر ستون:")
-print(df.isnull().sum())
 
-print("\nتعداد ردیف‌های تکراری:")
-print(df.duplicated().sum())
+st.header("مرحله ۲: پاک‌سازی داده‌ها")
+
+st.subheader("داده‌های گمشده در هر ستون")
+st.dataframe(df.isnull().sum().to_frame("تعداد داده‌های گمشده"))
+
+st.subheader("تعداد ردیف‌های تکراری")
+st.write(df.duplicated().sum())
 
 df = df.drop_duplicates()
 
-print("\nتعداد ردیف‌ها بعد از حذف داده‌های تکراری:", df.shape[0])
+st.write(
+    "تعداد ردیف‌ها بعد از حذف داده‌های تکراری:",
+    df.shape[0]
+)
 
 
 
-# مرحله ۳: تبدیل داده‌های غیرعددی به عددی
+# مرحله ۳: تبدیل داده‌های غیرعددی
 
+
+st.header("مرحله ۳: تبدیل داده‌های غیرعددی")
 
 binary_columns = [
     "part_time_job",
@@ -75,75 +104,93 @@ df = pd.get_dummies(
     dtype=int
 )
 
-print("\nاطلاعات دیتاست بعد از تبدیل داده‌های غیرعددی:")
-print(df.info())
+st.subheader("اطلاعات دیتاست بعد از تبدیل داده‌های غیرعددی")
 
-print("\nتعداد ردیف‌ها و ستون‌ها بعد از تبدیل:")
-print("تعداد ردیف‌ها:", df.shape[0])
-print("تعداد ستون‌ها:", df.shape[1])
+info_df_after = pd.DataFrame({
+    "نوع داده": df.dtypes.astype(str),
+    "تعداد مقادیر غیرخالی": df.notna().sum(),
+    "تعداد مقادیر خالی": df.isna().sum()
+})
+
+st.dataframe(info_df_after, use_container_width=True)
+
+st.write("تعداد ردیف‌ها:", df.shape[0])
+st.write("تعداد ستون‌ها:", df.shape[1])
 
 
 
-# مرحله ۴: رسم نمودارها
+# مرحله ۴: نمودارها
+
+
+st.header("مرحله ۴: نمودارهای بررسی داده")
 
 
 # نمودار ۱: توزیع نمره امتحان
 
-plt.figure(figsize=(8, 5))
+st.subheader("توزیع نمره‌های امتحان")
 
-plt.hist(
+fig1, ax1 = plt.subplots(figsize=(8, 5))
+
+ax1.hist(
     df["exam_score"],
     bins=20
 )
 
-plt.xlabel("Exam Score")
-plt.ylabel("Number of Students")
-plt.title("Distribution of Exam Scores")
+ax1.set_xlabel("Exam Score")
+ax1.set_ylabel("Number of Students")
+ax1.set_title("Distribution of Exam Scores")
 
-plt.show()
+st.pyplot(fig1)
 
 
-# نمودار ۲: رابطه ساعات مطالعه و نمره امتحان
+# نمودار ۲: ساعت مطالعه و نمره
 
-plt.figure(figsize=(8, 5))
+st.subheader("رابطه ساعت مطالعه و نمره امتحان")
 
-plt.scatter(
+fig2, ax2 = plt.subplots(figsize=(8, 5))
+
+ax2.scatter(
     df["study_hours_per_day"],
     df["exam_score"],
     alpha=0.3
 )
 
-plt.xlabel("Study Hours per Day")
-plt.ylabel("Exam Score")
-plt.title("Study Hours vs Exam Score")
+ax2.set_xlabel("Study Hours per Day")
+ax2.set_ylabel("Exam Score")
+ax2.set_title("Study Hours vs Exam Score")
 
-plt.show()
+st.pyplot(fig2)
 
 
-# نمودار ۳: مقایسه نمره امتحان بر اساس جنسیت
+# نمودار ۳: نمره بر اساس جنسیت
+
+st.subheader("نمره امتحان بر اساس جنسیت")
 
 gender_data = pd.read_csv(
     "enhanced_student_habits_performance_dataset.csv"
 )
 
-plt.figure(figsize=(8, 5))
+fig3, ax3 = plt.subplots(figsize=(8, 5))
 
 sns.boxplot(
     x="gender",
     y="exam_score",
-    data=gender_data
+    data=gender_data,
+    ax=ax3
 )
 
-plt.xlabel("Gender")
-plt.ylabel("Exam Score")
-plt.title("Exam Score by Gender")
+ax3.set_xlabel("Gender")
+ax3.set_ylabel("Exam Score")
+ax3.set_title("Exam Score by Gender")
 
-plt.show()
+st.pyplot(fig3)
 
 
 
-# مرحله ۵: تقسیم داده به آموزش و تست
+# مرحله ۵: تقسیم داده‌ها
 
+
+st.header("مرحله ۵: تقسیم داده‌ها به آموزشی و تست")
 
 X = df.drop(
     ["exam_score", "student_id"],
@@ -160,22 +207,22 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
-print("\nمرحله ۵: تقسیم داده‌ها")
-
-print(
+st.write(
     "تعداد داده‌های آموزشی:",
     len(X_train)
 )
 
-print(
+st.write(
     "تعداد داده‌های تست:",
     len(X_test)
 )
 
 
 
-# مرحله ۶: ساخت و آموزش مدل
+# مرحله ۶: ساخت مدل
 
+
+st.header("مرحله ۶: ساخت مدل Decision Tree")
 
 model = DecisionTreeRegressor(
     max_depth=10,
@@ -187,16 +234,16 @@ model.fit(
     y_train
 )
 
-print("\nمرحله ۶: ساخت مدل")
-
-print(
-    "مدل Decision Tree با موفقیت آموزش داده شد."
+st.success(
+    "مدل DecisionTree با موفقیت آموزش داده شد."
 )
 
 
 
 # مرحله ۷: ارزیابی مدل
 
+
+st.header("مرحله ۷: ارزیابی مدل")
 
 y_pred = model.predict(X_test)
 
@@ -205,59 +252,78 @@ mae = mean_absolute_error(
     y_pred
 )
 
-print("\nمرحله ۷: ارزیابی مدل")
-
-print(
-    "MAE مدل:",
-    mae
-)
+st.write("MAE مدل:", mae)
 
 if mae <= 4.0:
-
-    print(
+    st.success(
         "مدل به حد مجاز خطای 4.0 رسیده است."
     )
-
 else:
-
-    print(
+    st.error(
         "خطای مدل بیشتر از 4.0 است و نیاز به تنظیم مدل دارد."
     )
 
 
-# مرحله ۸: نمودار اهمیت ویژگی‌ها
 
+# مرحله ۸: اهمیت ویژگی‌ها
+
+st.header("مرحله ۸: اهمیت ویژگی‌ها")
 
 feature_importance = pd.Series(
     model.feature_importances_,
     index=X.columns
-).sort_values(ascending=False)
+).sort_values(
+    ascending=False
+)
 
-print("\nمرحله ۸: اهمیت ویژگی‌ها")
 
-print("\n3 ویژگی مهم:")
-print(feature_importance.head(3))
+st.subheader("3 ویژگی مهم")
 
-# نمودار اهمیت 10 ویژگی برتر
-plt.figure(figsize=(10, 6))
-feature_importance.head(10).sort_values().plot(kind="barh")
-plt.xlabel("Importance")
-plt.ylabel("Feature")
-plt.title("Top 10 Feature Importance")
+st.dataframe(
+    feature_importance.head(3).to_frame("Importance")
+)
+
+
+# نمودار Feature Importance
+
+st.subheader("Top 10 Feature Importance")
+
+top_10 = feature_importance.head(10).sort_values()
+
+fig4, ax4 = plt.subplots(figsize=(10, 6))
+
+ax4.barh(
+    top_10.index,
+    top_10.values
+)
+
+ax4.set_xscale("symlog", linthresh=0.0001)
+
+ax4.set_xlabel("Importance")
+ax4.set_ylabel("Feature")
+ax4.set_title("Top 10 Feature Importance")
+
+ax4.grid(
+    axis="x",
+    alpha=0.3
+)
+
 plt.tight_layout()
-plt.show()
+
+st.pyplot(fig4)
+
 
 
 # مرحله ۹: ذخیره مدل
 
+
+st.header("مرحله ۹: ذخیره‌سازی مدل")
 
 joblib.dump(
     model,
     "student_habits_model.joblib"
 )
 
-print("\nمرحله ۹: ذخیره‌سازی مدل")
-
-print(
+st.success(
     "مدل با موفقیت در فایل student_habits_model.joblib ذخیره شد."
 )
